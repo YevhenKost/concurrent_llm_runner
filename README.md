@@ -57,6 +57,7 @@ runner = LLMBatchRunner(
     cache_dir="./llm_cache",
     n_retries=3,
     overwrite_existing=False,
+    conversations_meta=None # or list of dicts: additional values to store
 )
 
 results = runner.run()
@@ -84,7 +85,8 @@ Output:
     "value": 84
   },
   "raw_output": "{\"reasoning\": \"12 * 7 can be calculated as (10 * 7) + (2 * 7) = 70 + 14 = 84.\", \"value\": 84}",
-  "success": "True"
+  "success": "True",
+  "meta": null
 }
 ```
 

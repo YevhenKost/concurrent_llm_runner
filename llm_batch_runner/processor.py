@@ -46,6 +46,7 @@ class SampleResult:
     from_cache: bool = False
     attempts: int = 0
     conversation: Conversation = None
+    meta: List[Any] = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -78,6 +79,7 @@ class LLMBatchRunner:
     ...     model_name="gpt-4o-mini",
     ...     cache_dir="./cache",
     ...     n_retries=3,
+    ...     conversations_meta=None
     ... )
     >>> results = runner.run()
     """
@@ -96,6 +98,7 @@ class LLMBatchRunner:
         temperature: Optional[float] = None,
         extra_create_kwargs: Optional[Dict[str, Any]] = None,
         show_progress: bool = True,
+        conversations_meta: List[Any]|None = None,
     ) -> None:
         if n_retries < 1:
             raise ValueError("n_retries must be >= 1")
@@ -119,6 +122,13 @@ class LLMBatchRunner:
 
         self._progress_lock = threading.Lock()
         self._completed = 0
+
+        self.conversations_meta = [None for _ in range(len(self.messages))]
+        if conversations_meta is not None:
+            assert isinstance(conversations_meta, list)
+            assert len(conversations_meta) == len(messages)
+            self.conversations_meta = conversations_meta
+
 
     # ------------------------------------------------------------------ #
     # Public API
@@ -152,7 +162,8 @@ class LLMBatchRunner:
                         hash=hash_messages(self.messages[idx]),
                         success=False,
                         error=str(exc),
-                        conversation=self.messages[idx]
+                        conversation=self.messages[idx],
+                        meta=self.conversations_meta[idx]
                     )
                 results[idx] = result
                 self._report_progress(total)
@@ -225,7 +236,8 @@ class LLMBatchRunner:
                         from_cache=True,
                         attempts=0,
                         conversation=conversation,
-                        raw_output=cached.get("raw_output")
+                        raw_output=cached.get("raw_output"),
+                        meta=cached.get("meta")
                     )
 
         last_error: Optional[str] = None
@@ -239,7 +251,8 @@ class LLMBatchRunner:
                     "model_name": self.model_name,
                     "attempts": attempt,
                     "conversation": conversation,
-                    "raw_output": raw_output
+                    "raw_output": raw_output,
+                    "meta": self.conversations_meta[index]
                 }
                 self._save_cache(key, record)
                 return SampleResult(
@@ -276,7 +289,8 @@ class LLMBatchRunner:
             "model_name": self.model_name,
             "attempts": self.n_retries,
             "conversation": conversation,
-            "raw_output": None
+            "raw_output": None,
+            "meta": self.conversations_meta[index]
         }
 
         # Cache the failure too, so a re-run without overwrite_existing
