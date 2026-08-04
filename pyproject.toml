@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-batch-runner"
+version = "0.1.0"
+description = "Concurrent, caching, retrying OpenAI-compatible batch chat-completion runner with structured output validation."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Your Name", email = "you@example.com" }
+]
+keywords = ["openai", "llm", "batch", "structured-output", "pydantic", "concurrency", "cache"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "openai>=1.40.0",
+    "pydantic>=2.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/llm-batch-runner"
+
+[tool.setuptools.packages.find]
+include = ["llm_batch_runner*"]
