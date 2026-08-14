@@ -298,7 +298,7 @@ class LLMBatchRunner:
 
         # Cache the failure too, so a re-run without overwrite_existing
         # doesn't silently skip a sample that never succeeded.
-        self._save_cache(key, record)
+        # self._save_cache(key, record)
         return SampleResult(
             index=index,
             hash=key,
