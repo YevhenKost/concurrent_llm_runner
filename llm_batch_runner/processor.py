@@ -334,7 +334,7 @@ class LLMBatchRunner:
                 raise ValueError("Model did not return a parsed structured output")
 
             json_model_output = message.parsed.model_dump()
-            validated_json_model_output = self._validate(json_model_output)
+            validated_json_model_output = self._validate(json_model_output, conversation)
             return validated_json_model_output, message.content
 
         # Regular (non-structured) completion
@@ -349,7 +349,7 @@ class LLMBatchRunner:
         response = self.client.chat.completions.create(**create_kwargs)
         return response.choices[0].message.content, response.choices[0].message.content
 
-    def _validate(self, extracted_json) -> dict:
+    def _validate(self, extracted_json, conversation) -> dict:
 
         try:
             instance = self.base_model.model_validate_json(json.dumps(extracted_json))
@@ -358,7 +358,7 @@ class LLMBatchRunner:
 
         if self.additional_validation_func is not None:
             try:
-                is_valid = self.additional_validation_func(extracted_json)
+                is_valid = self.additional_validation_func(extracted_json, conversation)
                 if not is_valid:
                     raise ValueError(f"Structured output validation failed via CUSTOM FUNCTION: {extracted_json}")
             except Exception as exc:
