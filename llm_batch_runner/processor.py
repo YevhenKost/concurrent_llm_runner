@@ -250,7 +250,7 @@ class LLMBatchRunner:
             try:
                 output, raw_output = self._call_and_validate(conversation)
                 if self.postprocessing_func is not None:
-                    output = self.postprocessing_func(output)
+                    output = self.postprocessing_func(output, conversation)
                 record = {
                     "success": True,
                     "output": output,
