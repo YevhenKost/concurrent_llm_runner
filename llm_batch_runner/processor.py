@@ -99,6 +99,7 @@ class LLMBatchRunner:
         extra_create_kwargs: Optional[Dict[str, Any]] = None,
         show_progress: bool = True,
         conversations_meta: List[Any]|None = None,
+        additional_validation_func = None
     ) -> None:
         if n_retries < 1:
             raise ValueError("n_retries must be >= 1")
@@ -122,6 +123,8 @@ class LLMBatchRunner:
 
         self._progress_lock = threading.Lock()
         self._completed = 0
+
+        self.additional_validation_func = additional_validation_func
 
         self.conversations_meta = [None for _ in range(len(self.messages))]
         if conversations_meta is not None:
@@ -352,6 +355,15 @@ class LLMBatchRunner:
             instance = self.base_model.model_validate_json(json.dumps(extracted_json))
         except Exception as exc:
             raise ValueError(f"Structured output validation failed: {exc}") from exc
+
+        if self.additional_validation_func is not None:
+            try:
+                is_valid = self.additional_validation_func(extracted_json)
+                if not is_valid:
+                    raise ValueError(f"Structured output validation failed via CUSTOM FUNCTION: {extracted_json}")
+            except Exception as exc:
+                raise ValueError(f"Structured output validation failed: {exc}") from exc
+
 
         return instance.model_dump()
 
