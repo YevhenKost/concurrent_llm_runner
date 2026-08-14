@@ -99,7 +99,8 @@ class LLMBatchRunner:
         extra_create_kwargs: Optional[Dict[str, Any]] = None,
         show_progress: bool = True,
         conversations_meta: List[Any]|None = None,
-        additional_validation_func = None
+        additional_validation_func = None,
+        postprocessing_func=None
     ) -> None:
         if n_retries < 1:
             raise ValueError("n_retries must be >= 1")
@@ -125,6 +126,7 @@ class LLMBatchRunner:
         self._completed = 0
 
         self.additional_validation_func = additional_validation_func
+        self.postprocessing_func = postprocessing_func
 
         self.conversations_meta = [None for _ in range(len(self.messages))]
         if conversations_meta is not None:
@@ -247,6 +249,8 @@ class LLMBatchRunner:
         for attempt in range(1, self.n_retries + 1):
             try:
                 output, raw_output = self._call_and_validate(conversation)
+                if self.postprocessing_func is not None:
+                    output = self.postprocessing_func(output)
                 record = {
                     "success": True,
                     "output": output,
@@ -285,19 +289,18 @@ class LLMBatchRunner:
             self.n_retries,
             last_error,
         )
-        record = {
-            "success": False,
-            "output": None,
-            "error": last_error,
-            "model_name": self.model_name,
-            "attempts": self.n_retries,
-            "conversation": conversation,
-            "raw_output": None,
-            "meta": self.conversations_meta[index]
-        }
-
-        # Cache the failure too, so a re-run without overwrite_existing
+        # # Cache the failure too, so a re-run without overwrite_existing
         # doesn't silently skip a sample that never succeeded.
+        # record = {
+        #     "success": False,
+        #     "output": None,
+        #     "error": last_error,
+        #     "model_name": self.model_name,
+        #     "attempts": self.n_retries,
+        #     "conversation": conversation,
+        #     "raw_output": None,
+        #     "meta": self.conversations_meta[index]
+        # }
         # self._save_cache(key, record)
         return SampleResult(
             index=index,
