@@ -74,8 +74,7 @@ class LLMBatchRunner:
     ...     base_model=Answer,
     ...     messages=[[{"role": "user", "content": "2+2=?"}]],
     ...     max_workers=8,
-    ...     api_key="sk-...",
-    ...     base_url="https://api.openai.com/v1",
+    ...     client_config={"api_key": "wow_very secret", "base_url": None},
     ...     model_name="gpt-4o-mini",
     ...     cache_dir="./cache",
     ...     n_retries=3,
@@ -89,8 +88,7 @@ class LLMBatchRunner:
         base_model: Optional[Type[BaseModel]],
         messages: List[Conversation],
         max_workers: int,
-        api_key: str,
-        base_url: str,
+        client_config: dict,
         model_name: str,
         cache_dir: Union[str, Path],
         n_retries: int = 3,
@@ -120,7 +118,7 @@ class LLMBatchRunner:
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-        self.client = OpenAI(api_key=api_key, base_url=base_url)
+        self.client = OpenAI(**client_config)
 
         self._progress_lock = threading.Lock()
         self._completed = 0

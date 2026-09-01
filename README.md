@@ -23,13 +23,6 @@ a Pydantic model.
 - `LLMBatchRunner.load_cache(cache_dir)` is a static method that loads
   every cached record back into a dict, keyed by hash.
 
-## Install
-
-```bash
-pip install llm-batch-runner
-```
-
-(Or, until published: `pip install -e .` from this directory.)
 
 ## Usage
 
@@ -51,8 +44,7 @@ runner = LLMBatchRunner(
     base_model=Answer,          # or None for plain text completions
     messages=conversations,     # List[List[dict]] — one conversation per sample
     max_workers=16,
-    api_key="sk-...",
-    base_url="https://api.openai.com/v1",
+    client_config={"api_key": "wow_very secret", "base_url": None},
     model_name="gpt-4o-mini",
     cache_dir="./llm_cache",
     n_retries=3,
